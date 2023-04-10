@@ -127,7 +127,7 @@ def main():
 			csvwriter.writerow(list(_tuple))
 
 if __name__ == "__main__":
-	main()
+	# main()
 	# call this function only once, when dataset is created,
 	# and then use the same dataset with the same input to train all the models
 	pass
