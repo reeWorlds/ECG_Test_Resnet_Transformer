@@ -234,7 +234,7 @@ def getF1Score(mat):
 	return average_f1_score
 
 
-def getTestF1(attempt):
+def testF1(attempt):
 	custom_objects = { "CustomAdamW": CustomAdamW, "CustomLearningRateSchedule": CustomLearningRateSchedule }
 	model = keras.models.load_model(f'../../models/BasicCNN/best_attempt{attempt}.h5', custom_objects=custom_objects)
 
@@ -260,6 +260,7 @@ def getTestF1(attempt):
 
 	average_f1_score = getF1Score(mat)
 	
+	print(mat)
 	print(f"attempt {attempt} has f1 score {average_f1_score}")
 
 
@@ -268,13 +269,13 @@ if __name__ == "__main__":
 	
 	#plot_lr_schedule("../../models/BasicCNN/schedule.png")
 	
-	for attempt in range(1, 4):
-		train(attempt, 1e-3, 1e-1)
-		plotTrainValidCurve(f"../../models/basicCNN/history_attempt{attempt}.csv",
-					 f"../../models/basicCNN/history_attempt{attempt}.png")
+	#for attempt in range(1, 4):
+	#	train(attempt, 1e-3, 1e-2)
+	#	plotTrainValidCurve(f"../../models/basicCNN/history_attempt{attempt}.csv",
+	#				 f"../../models/basicCNN/history_attempt{attempt}.png")
 	
 	for attempt in range(1, 4):
-		getTestF1(attempt)
+		testF1(attempt)
 
-	# todo overnight training
-	# todo add logreg in training data
+	# todo add extra data mapping for train data
+	# todo logreg based on training data
