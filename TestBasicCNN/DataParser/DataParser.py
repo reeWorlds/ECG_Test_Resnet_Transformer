@@ -39,7 +39,7 @@ def main():
 	random.shuffle(perm)
 	
 	# process the data into a format planned for the models
-	trainData, trainRef = [], []
+	trainData, trainRef, trainMap = [], [], []
 	validData, validRef = [], []
 	testData, testMap, testRef = [], [], []
 
@@ -60,6 +60,7 @@ def main():
 		while pos + M <= len(inputData[i]):
 			trainData.append(inputData[i][pos:pos + M])
 			trainRef.append(labelToNum(inputRef[i]))
+			trainMap.append(perm[i])
 			pos += shift
 
 	# validation data
@@ -103,6 +104,10 @@ def main():
 		csvwriter = csv.writer(file)
 		csvwriter.writerow(trainRef)
 
+	with open('../../data/trainMap.csv', 'w', newline='') as file:
+		csvwriter = csv.writer(file)
+		csvwriter.writerow(trainMap)
+
 	with open('../../data/validData.csv', 'w', newline='') as file:
 		csvwriter = csv.writer(file)
 		for row in validData:
@@ -127,7 +132,7 @@ def main():
 			csvwriter.writerow(list(_tuple))
 
 if __name__ == "__main__":
-	# main()
+	main()
 	# call this function only once, when dataset is created,
 	# and then use the same dataset with the same input to train all the models
 	pass

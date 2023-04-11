@@ -4,11 +4,17 @@ from tensorflow.python.client import device_lib
 from tensorflow.keras.optimizers import schedules
 from tensorflow.keras.callbacks import ModelCheckpoint
 
+import pickle
 import math
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
 import tensorflow_addons as tfa
+import sklearn
+from sklearn import linear_model
+from sklearn import metrics
+from sklearn import model_selection
+from scipy.optimize import minimize
 
 
 def testGPU():
@@ -193,7 +199,7 @@ def getModel(custom_lr_schedule, decay):
 	return model
 
 
-def train(attempt, initial_learning_rate, weight_decay):
+def trainNN(attempt, initial_learning_rate, weight_decay):
 	epochs = 256
 	batch_size = 256
 
@@ -215,6 +221,53 @@ def train(attempt, initial_learning_rate, weight_decay):
 		f.write('epoch,train_accuracy,val_accuracy\n')
 		for epoch, (train_acc, val_acc) in enumerate(zip(train_accuracy, val_accuracy), start=1):
 			f.write(f'{epoch},{train_acc},{val_acc}\n')
+
+
+def trainLogReg(attempt):
+	trainData, trainRef, validData, validRef = readData()
+	trainMap = pd.read_csv('../../data/trainMap.csv', header=None).transpose()
+	
+	custom_objects = { "CustomAdamW": CustomAdamW, "CustomLearningRateSchedule": CustomLearningRateSchedule }
+	NNmodel = keras.models.load_model(f'../../models/BasicCNN/best_attempt{attempt}.h5', custom_objects=custom_objects)
+	
+	pred = NNmodel.predict(trainData)
+
+	refMapping = {}
+	joined = {}
+
+	for index, row in trainMap.iterrows():
+		refMapping[int(row[0])] = int(trainRef[index].argmax())
+		joined[int(row[0])] = []
+
+	for i,preds in enumerate(pred):
+		joined[int(trainMap[0][i])].append([math.log(x) for x in list(preds)])
+
+	X = []
+	y = []
+
+	for key in joined.keys():
+		X.append(np.exp(np.mean(joined[key], axis=0)))
+		y.append(refMapping[key])
+
+	X = np.array(X)
+	y = np.array(y)
+
+	logreg = linear_model.LogisticRegression(multi_class="multinomial", solver="lbfgs", C=1e9, fit_intercept=False)
+	logreg.fit(X, y)
+
+	def loss_function(weights, X, y, logreg):
+		logreg.coef_ = weights.reshape(logreg.coef_.shape)
+		y_pred = logreg.predict(X)
+		f1 = metrics.f1_score(y, y_pred, average="weighted")
+		return 1 - f1
+	
+	initial_weights = logreg.coef_.flatten()
+	result = minimize(loss_function, initial_weights, args=(X, y, logreg), method="L-BFGS-B")
+	
+	logreg.coef_ = result.x.reshape(logreg.coef_.shape)
+
+	with open(f'../../models/BasicCNN/logreg_attempt{attempt}.pkl', 'wb') as file:
+		pickle.dump(logreg, file)
 
 
 def getF1Score(mat):
@@ -249,12 +302,15 @@ def testF1(attempt):
 
 	pred = model.predict(testData)
 	for i,preds in enumerate(pred):
-		joined[int(testMap[0][i])].append([-math.log(x) for x in list(preds)])
+		joined[int(testMap[0][i])].append([math.log(x) for x in list(preds)])
 	
 	mat = np.zeros((3,3))
 
+	with open(f'../../models/BasicCNN/logreg_attempt{attempt}.pkl', 'rb') as file:
+		logreg = pickle.load(file)
+
 	for key in joined.keys():
-		predicted = np.sum(joined[key], axis=0).argmin()
+		predicted = logreg.predict(np.exp(np.mean(joined[key], axis=0)).reshape(1, -1))[0]
 		gt = refMapping[key]
 		mat[gt,predicted] += 1
 
@@ -264,18 +320,108 @@ def testF1(attempt):
 	print(f"attempt {attempt} has f1 score {average_f1_score}")
 
 
+def trainLogRegFull(listAttempts):
+	trainData, trainRef, validData, validRef = readData()
+	trainMap = pd.read_csv('../../data/trainMap.csv', header=None).transpose()
+	
+	custom_objects = { "CustomAdamW": CustomAdamW, "CustomLearningRateSchedule": CustomLearningRateSchedule }
+	NNmodels = [keras.models.load_model(f'../../models/BasicCNN/best_attempt{x}.h5', custom_objects=custom_objects) for x in listAttempts]
+
+	predicts = [NNmodels[x - 1].predict(trainData) for x in listAttempts]
+
+	refMapping = {}
+	joined = {}
+
+	for index, row in trainMap.iterrows():
+		refMapping[int(row[0])] = int(trainRef[index].argmax())
+		joined[int(row[0])] = []
+
+	for i in range(trainData.shape[0]):
+		pred = []
+		for x in listAttempts:
+			pred.extend(list(predicts[x - 1][i]))
+		joined[int(trainMap[0][i])].append([math.log(x) for x in list(pred)])
+
+	X = []
+	y = []
+
+	for key in joined.keys():
+		X.append(np.exp(np.mean(joined[key], axis=0)))
+		y.append(refMapping[key])
+
+	X = np.array(X)
+	y = np.array(y)
+
+	logreg = linear_model.LogisticRegression(multi_class="multinomial", solver="lbfgs", C=1e9, fit_intercept=False)
+	logreg.fit(X, y)
+
+	def loss_function(weights, X, y, logreg):
+		logreg.coef_ = weights.reshape(logreg.coef_.shape)
+		y_pred = logreg.predict(X)
+		f1 = metrics.f1_score(y, y_pred, average="weighted")
+		return 1 - f1
+	
+	initial_weights = logreg.coef_.flatten()
+	result = minimize(loss_function, initial_weights, args=(X, y, logreg), method="L-BFGS-B")
+	
+	logreg.coef_ = result.x.reshape(logreg.coef_.shape)
+
+	with open(f'../../models/BasicCNN/logreg_full.pkl', 'wb') as file:
+		pickle.dump(logreg, file)
+
+
+def testF1Full(listAttempts):
+	testData, testMap, testRef = readTestData()
+
+	custom_objects = { "CustomAdamW": CustomAdamW, "CustomLearningRateSchedule": CustomLearningRateSchedule }
+	NNmodels = [keras.models.load_model(f'../../models/BasicCNN/best_attempt{x}.h5', custom_objects=custom_objects) for x in listAttempts]
+
+	predicts = [NNmodels[x - 1].predict(testData) for x in listAttempts]
+
+	refMapping = {}
+	joined = {}
+
+	for index, row in testRef.iterrows():
+		refMapping[int(row[0])] = int(row[1])
+		joined[int(row[0])] = []
+
+	for i in range(testData.shape[0]):
+		pred = []
+		for x in listAttempts:
+			pred.extend(list(predicts[x - 1][i]))
+		joined[int(testMap[0][i])].append([math.log(x) for x in list(pred)])
+	
+	mat = np.zeros((3,3))
+
+	with open(f'../../models/BasicCNN/logreg_full.pkl', 'rb') as file:
+		logreg = pickle.load(file)
+
+	for key in joined.keys():
+		predicted = logreg.predict(np.exp(np.mean(joined[key], axis=0)).reshape(1, -1))[0]
+		gt = refMapping[key]
+		mat[gt,predicted] += 1
+
+	average_f1_score = getF1Score(mat)
+	
+	print(mat)
+	print(f"Full f1 score {average_f1_score}")
+
+
 if __name__ == "__main__":
 	#testGPU()
 	
 	#plot_lr_schedule("../../models/BasicCNN/schedule.png")
 	
 	#for attempt in range(1, 4):
-	#	train(attempt, 1e-3, 1e-2)
+	#	trainNN(attempt, 1e-3, 1e-2)
 	#	plotTrainValidCurve(f"../../models/basicCNN/history_attempt{attempt}.csv",
 	#				 f"../../models/basicCNN/history_attempt{attempt}.png")
 	
+	#for attempt in range(1, 4):
+	#	trainLogReg(attempt)
+
 	for attempt in range(1, 4):
 		testF1(attempt)
 
-	# todo add extra data mapping for train data
-	# todo logreg based on training data
+	#trainLogRegFull(range(1, 4))
+	testF1Full(range(1, 4))
