@@ -4,14 +4,25 @@ Here I want to test 3 approaches to [classification of ECG](https://physionet.or
 
 ---
 
+## BasicCNN (284,947 parameters)
+
 Results for basic CNN architecture + logreg ontop of NN probabilities:
-|          | Rand Init 1 | Rand Init 2 | Rand Init 3 | logreg on 9 values |
-| -------- | ----------- | ----------- | ----------- | ------------------ |
-| F1 score | 0.741       | 0.785       | 0.765       | 0.757              |
+|               | Rand Init 1 | Rand Init 2 | Rand Init 3 | logreg on 9 values |
+| ------------- | ----------- | ----------- | ----------- | ------------------ |
+| Test F1 score | 0.741       | 0.785       | 0.765       | 0.757              |
 
 ---
 
-Results for ResNet-like CNN architecture + logreg ontop of NN probabilities:
+## ResNetLikeCNNx3 (344,259 parameters)
+
+Results for ResNet-like CNN architecture #1 + logreg ontop of NN probabilities:
+|               | Rand Init 1 | Rand Init 2 | Rand Init 3 | logreg on 9 values |
+| ------------- | ----------- | ----------- | ----------- | ------------------ |
+| Test F1 score | 0.715       | 0.770       | 0.775       | 0.787              |
+
+---
+
+Results for ResNet-like CNN architecture #2,3,4 + logreg ontop of NN probabilities:
 
 todo
 

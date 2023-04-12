@@ -179,6 +179,7 @@ def getModel(custom_lr_schedule, decay):
 	x = tf.keras.layers.Add()([x, shortcut])
 
 	x = tf.keras.layers.MaxPooling1D(5)(x)
+	x = tf.keras.layers.Dropout(0.5)(x)
 
 	# Residual block 2
 	shortcut = tf.keras.layers.Conv1D(24, 1)(x)
@@ -194,6 +195,7 @@ def getModel(custom_lr_schedule, decay):
 	x = tf.keras.layers.Add()([x, shortcut])
 
 	x = tf.keras.layers.Flatten()(x)
+	x = tf.keras.layers.Dropout(0.5)(x)
 	x = tf.keras.layers.Dense(48, activation='relu')(x)
 	x = tf.keras.layers.BatchNormalization()(x)
 	x = tf.keras.layers.Dropout(0.5)(x)
@@ -345,21 +347,107 @@ def testF1(attempt):
 	print(f"attempt {attempt} has f1 score {average_f1_score}")
 
 
+def trainLogRegFull(listAttempts):
+	trainData, trainRef, trainMap = readTrainData()
+	trainMap = pd.read_csv('../../data/trainMap.csv', header=None).transpose()
+	
+	custom_objects = { "CustomAdamW": CustomAdamW, "CustomLearningRateSchedule": CustomLearningRateSchedule }
+	NNmodels = [keras.models.load_model(f'../../models/ResNetLikeCNNx3/best_attempt{x}.h5', custom_objects=custom_objects) for x in listAttempts]
+
+	predicts = [NNmodels[x - 1].predict(trainData) for x in listAttempts]
+
+	refMapping = {}
+	joined = {}
+
+	for index, row in trainMap.iterrows():
+		refMapping[int(row[0])] = int(trainRef[index].argmax())
+		joined[int(row[0])] = []
+
+	for i in range(trainData.shape[0]):
+		pred = []
+		for x in listAttempts:
+			pred.extend(list(predicts[x - 1][i]))
+		joined[int(trainMap[0][i])].append([math.log(x) for x in list(pred)])
+
+	X = []
+	y = []
+
+	for key in joined.keys():
+		X.append(np.exp(np.mean(joined[key], axis=0)))
+		y.append(refMapping[key])
+
+	X = np.array(X)
+	y = np.array(y)
+
+	logreg = linear_model.LogisticRegression(multi_class="multinomial", solver="lbfgs", C=1e9, fit_intercept=False)
+	logreg.fit(X, y)
+
+	def loss_function(weights, X, y, logreg):
+		logreg.coef_ = weights.reshape(logreg.coef_.shape)
+		y_pred = logreg.predict(X)
+		f1 = metrics.f1_score(y, y_pred, average="weighted")
+		return 1 - f1
+	
+	initial_weights = logreg.coef_.flatten()
+	result = minimize(loss_function, initial_weights, args=(X, y, logreg), method="L-BFGS-B")
+	
+	logreg.coef_ = result.x.reshape(logreg.coef_.shape)
+
+	with open(f'../../models/ResNetLikeCNNx3/logreg_full.pkl', 'wb') as file:
+		pickle.dump(logreg, file)
+
+def testF1Full(listAttempts):
+	testData, testMap, testRef = readTestData()
+
+	custom_objects = { "CustomAdamW": CustomAdamW, "CustomLearningRateSchedule": CustomLearningRateSchedule }
+	NNmodels = [keras.models.load_model(f'../../models/ResNetLikeCNNx3/best_attempt{x}.h5', custom_objects=custom_objects) for x in listAttempts]
+
+	predicts = [NNmodels[x - 1].predict(testData) for x in listAttempts]
+
+	refMapping = {}
+	joined = {}
+
+	for index, row in testRef.iterrows():
+		refMapping[int(row[0])] = int(row[1])
+		joined[int(row[0])] = []
+
+	for i in range(testData.shape[0]):
+		pred = []
+		for x in listAttempts:
+			pred.extend(list(predicts[x - 1][i]))
+		joined[int(testMap[0][i])].append([math.log(x) for x in list(pred)])
+	
+	mat = np.zeros((3,3))
+
+	with open(f'../../models/ResNetLikeCNNx3/logreg_full.pkl', 'rb') as file:
+		logreg = pickle.load(file)
+
+	for key in joined.keys():
+		predicted = logreg.predict(np.exp(np.mean(joined[key], axis=0)).reshape(1, -1))[0]
+		gt = refMapping[key]
+		mat[gt,predicted] += 1
+
+	average_f1_score = getF1Score(mat)
+	
+	print(mat)
+	print(f"Full f1 score {average_f1_score}")
+
 
 if __name__ == "__main__":
 	#testGPU()
 
 	#plot_lr_schedule("../../models/ResNetLikeCNNx3/schedule.png")
 	
-	for attempt in range(1, 4):
-		trainNN(attempt, 1e-3, 1e-2)
-		plotTrainValidCurve(f"../../models/ResNetLikeCNNx3/history_attempt{attempt}.csv",
-					 f"../../models/ResNetLikeCNNx3/history_attempt{attempt}.png")
+	#for attempt in range(1, 4):
+	#	trainNN(attempt, 1e-3, 1e-1)
+	#	plotTrainValidCurve(f"../../models/ResNetLikeCNNx3/history_attempt{attempt}.csv",
+	#				 f"../../models/ResNetLikeCNNx3/history_attempt{attempt}.png")
 	
-	for attempt in range(1, 4):
-		trainLogReg(attempt)
+	#for attempt in range(1, 4):
+	#	trainLogReg(attempt)
 	
 	for attempt in range(1, 4):
 		testF1(attempt)
 
-	# todo full reg
+	#trainLogRegFull(range(1, 4))
+	testF1Full(range(1, 4))
