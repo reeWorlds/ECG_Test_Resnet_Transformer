@@ -31,7 +31,25 @@ Results for ResNet-like CNN architecture #2 + logreg ontop of NN probabilities:
 
 ---
 
-Results for ResNet-like CNN architecture # 3,4,5 + logreg ontop of NN probabilities:
+## SmallerResNet4x2 (147,811 parameters)
+
+Results for smaller ResNet-like CNN architecture #3 + logreg ontop of NN probabilities:
+|               | Rand Init 1 | Rand Init 2 | Rand Init 3 | logreg on 9 values |
+| ------------- | ----------- | ----------- | ----------- | ------------------ |
+| Test F1 score | 0.797       | 0.802       | 0.795       | 0.782              |
+
+---
+
+## SmallerResNet4x3 (151,451 parameters)
+
+Results for smaller ResNet-like CNN architecture #4 + logreg ontop of NN probabilities:
+|               | Rand Init 1 | Rand Init 2 | Rand Init 3 | logreg on 9 values |
+| ------------- | ----------- | ----------- | ----------- | ------------------ |
+| Test F1 score | 0.796       | 0.782       | 0.790       | 0.802              |
+
+---
+
+Results for ResNet-like CNN architecture # 5,6 + logreg ontop of NN probabilities:
 
 todo
 

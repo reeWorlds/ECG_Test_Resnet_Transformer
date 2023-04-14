@@ -471,8 +471,8 @@ if __name__ == "__main__":
 	#for attempt in range(1, 4):
 	#	trainLogReg(attempt)
 	
-	#for attempt in range(1, 4):
-	#	testF1(attempt)
+	for attempt in range(1, 4):
+		testF1(attempt)
 
 	#trainLogRegFull(range(1, 4))
-	#testF1Full(range(1, 4))
+	testF1Full(range(1, 4))
