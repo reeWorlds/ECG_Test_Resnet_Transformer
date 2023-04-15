@@ -49,7 +49,16 @@ Results for smaller ResNet-like CNN architecture #4 + logreg ontop of NN probabi
 
 ---
 
-Results for ResNet-like CNN architecture # 5,6 + logreg ontop of NN probabilities:
+## IdentityResNet4x2 (201,859 parameters)
+
+Results for identity ResNet-like CNN architecture #5 + logreg ontop of NN probabilities:
+|               | Rand Init 1 | Rand Init 2 | Rand Init 3 | logreg on 9 values |
+| ------------- | ----------- | ----------- | ----------- | ------------------ |
+| Test F1 score | 0.807       | 0.776       | 0.791       | 0.796              |
+
+---
+
+Results for ResNet-like CNN architecture # 6 + logreg ontop of NN probabilities:
 
 todo
 
