@@ -58,9 +58,12 @@ Results for identity ResNet-like CNN architecture #5 + logreg ontop of NN probab
 
 ---
 
-Results for ResNet-like CNN architecture # 6 + logreg ontop of NN probabilities:
+## IdentityResNet8x2 (214,851 parameters)
 
-todo
+Results for identity ResNet-like CNN architecture #5 + logreg ontop of NN probabilities:
+|               | Rand Init 1 | Rand Init 2 | Rand Init 3 | logreg on 9 values |
+| ------------- | ----------- | ----------- | ----------- | ------------------ |
+| Test F1 score | 0.757       | 0.764       | 0.793       | 0.794              |
 
 ---
 

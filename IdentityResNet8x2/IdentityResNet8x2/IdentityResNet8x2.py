@@ -492,20 +492,20 @@ def testF1Full(listAttempts):
 
 
 if __name__ == "__main__":
-	testGPU()
+	#testGPU()
 
-	plot_lr_schedule("../../models/IdentityResNet8x2/schedule.png")
+	#plot_lr_schedule("../../models/IdentityResNet8x2/schedule.png")
 	
-	for attempt in range(1, 4):
-		trainNN(attempt, 1e-3, 1e-1)
-		plotTrainValidCurve(f"../../models/IdentityResNet8x2/history_attempt{attempt}.csv",
-					 f"../../models/IdentityResNet8x2/history_attempt{attempt}.png")
+	#for attempt in range(1, 4):
+	#	trainNN(attempt, 1e-3, 1e-1)
+	#	plotTrainValidCurve(f"../../models/IdentityResNet8x2/history_attempt{attempt}.csv",
+	#				 f"../../models/IdentityResNet8x2/history_attempt{attempt}.png")
 	
-	for attempt in range(1, 4):
-		trainLogReg(attempt)
+	#for attempt in range(1, 4):
+	#	trainLogReg(attempt)
 	
 	for attempt in range(1, 4):
 		testF1(attempt)
 
 	#trainLogRegFull(range(1, 4))
-	#testF1Full(range(1, 4))
+	testF1Full(range(1, 4))
