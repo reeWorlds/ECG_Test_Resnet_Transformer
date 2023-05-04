@@ -1,0 +1,24 @@
+blocks = 2  embedding_dim = 64  ff_scale = 2   with total number of params =    65,860 +
+blocks = 2  embedding_dim = 64  ff_scale = 4   with total number of params =    98,884 todo
+blocks = 2  embedding_dim = 96  ff_scale = 2   with total number of params =   141,796 todo
+blocks = 2  embedding_dim = 96  ff_scale = 4   with total number of params =   215,908
+blocks = 2  embedding_dim = 128  ff_scale = 2  with total number of params =   246,404 todo with 4 and 8 heads
+blocks = 2  embedding_dim = 128  ff_scale = 4  with total number of params =   377,988
+blocks = 4  embedding_dim = 64  ff_scale = 2   with total number of params =   116,164 todo
+blocks = 4  embedding_dim = 64  ff_scale = 4   with total number of params =   182,212
+blocks = 4  embedding_dim = 96  ff_scale = 2   with total number of params =   254,116 todo
+blocks = 4  embedding_dim = 96  ff_scale = 4   with total number of params =   402,340
+blocks = 4  embedding_dim = 128  ff_scale = 2  with total number of params =   445,316
+blocks = 4  embedding_dim = 128  ff_scale = 4  with total number of params =   708,484
+blocks = 6  embedding_dim = 64  ff_scale = 2   with total number of params =   166,468 todo
+blocks = 6  embedding_dim = 64  ff_scale = 4   with total number of params =   265,540
+blocks = 6  embedding_dim = 96  ff_scale = 2   with total number of params =   366,436 todo
+blocks = 6  embedding_dim = 96  ff_scale = 4   with total number of params =   588,772
+blocks = 6  embedding_dim = 128  ff_scale = 2  with total number of params =   644,228
+blocks = 6  embedding_dim = 128  ff_scale = 4  with total number of params = 1,038,980
+blocks = 8  embedding_dim = 64  ff_scale = 2   with total number of params =   216,772 todo
+blocks = 8  embedding_dim = 64  ff_scale = 4   with total number of params =   348,868
+blocks = 8  embedding_dim = 96  ff_scale = 2   with total number of params =   478,756
+blocks = 8  embedding_dim = 96  ff_scale = 4   with total number of params =   775,204
+blocks = 8  embedding_dim = 128  ff_scale = 2  with total number of params =   843,140
+blocks = 8  embedding_dim = 128  ff_scale = 4  with total number of params = 1,369,476

@@ -67,6 +67,16 @@ Results for identity ResNet-like CNN architecture #5 + logreg ontop of NN probab
 
 ---
 
+## C1DCT (65,860 parameters)
+
+Results for C1DCT_2_64_4_2 architecture #1 + logreg ontop of NN probabilities:
+|               | Rand Init 1 | Rand Init 2 | Rand Init 3 | logreg on 9 values |
+| ------------- | ----------- | ----------- | ----------- | ------------------ |
+| Test F1 score | 0.543       | nan         | nan         | 0.539              |
+
+---
+
+
 Results for Transformer-like architecture + logreg ontop of NN probabilities:
 
 todo
